@@ -5,3 +5,4 @@ scikit-image
 imagehash
 Pillow
 tqdm
+scikit-learn
