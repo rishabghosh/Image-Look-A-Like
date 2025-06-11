@@ -1,15 +1,13 @@
 import os
-import pandas as pd
 from PIL import Image
 import imagehash
 from tqdm import tqdm
-from collections import defaultdict
 
 # Config
-EXCEL_PATH = "input/cartoon.xlsx"
-IMAGES_FOLDER = "input/cartoon"
+REFERENCE_IMAGES_DIR = "input/cartoon"
+QUERY_IMAGES_DIR = "output/extracted_images"
 OUTPUT_CSV = "output/output_mapping.csv"
-THRESHOLD = 20  # Adjust this if needed
+THRESHOLD = 10  # Adjust based on accuracy needs
 
 def compute_hash(image_path):
     try:
@@ -20,80 +18,49 @@ def compute_hash(image_path):
         return None
 
 def main():
-    # Load Excel and verify columns
-    df = pd.read_excel(EXCEL_PATH)
-    expected_columns = ['Product ID', 'Front Image', 'Back Image', 'Front side']
-    print("📄 Excel columns:", df.columns.tolist())
+    # Load all reference images
+    reference_hashes = {}
+    for fname in os.listdir(REFERENCE_IMAGES_DIR):
+        if fname.lower().endswith(('.png', '.jpg', '.jpeg')):
+            path = os.path.join(REFERENCE_IMAGES_DIR, fname)
+            h = compute_hash(path)
+            if h:
+                reference_hashes[fname] = h
 
-    for col in expected_columns:
-        if col not in df.columns:
-            raise ValueError(f"Missing expected column: '{col}' in Excel")
+    print(f"✅ Loaded {len(reference_hashes)} reference images from {REFERENCE_IMAGES_DIR}")
 
-    products = []
-    for _, row in df.iterrows():
-        pid = str(row['Product ID']).strip()
-        products.append((pid, row.get('Front Image'), row.get('Back Image'), row.get('Front side')))
+    # Load query images
+    query_images = [f for f in os.listdir(QUERY_IMAGES_DIR) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+    print(f"🔍 Comparing {len(query_images)} extracted images from {QUERY_IMAGES_DIR}")
 
-    print(f"✅ Loaded {len(products)} products")
+    # Compare
+    mapping = {}
 
-    # Compute reference hashes
-    reference_hashes = defaultdict(list)
-    for pid, front, back, side in products:
-        for label, img_col in zip(['f', 'b', 's'], [front, back, side]):
-            if pd.notna(img_col):
-                ref_path = os.path.join(IMAGES_FOLDER, str(img_col).strip())
-                if os.path.exists(ref_path):
-                    h = compute_hash(ref_path)
-                    if h:
-                        reference_hashes[pid].append((h, label))
-                else:
-                    print(f"⚠️ Missing reference image: {ref_path}")
-
-    print(f"🔍 Reference hashes loaded for {len(reference_hashes)} products")
-
-    # List all images in the folder
-    all_images = [f for f in os.listdir(IMAGES_FOLDER) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
-    print(f"📷 Found {len(all_images)} local images to scan")
-
-    mapping = defaultdict(list)
-
-    for img in tqdm(all_images):
-        img_path = os.path.join(IMAGES_FOLDER, img)
-        h = compute_hash(img_path)
-        if h is None:
+    for query in tqdm(query_images):
+        query_path = os.path.join(QUERY_IMAGES_DIR, query)
+        query_hash = compute_hash(query_path)
+        if not query_hash:
             continue
 
-        closest_matches = []
-        for pid, refs in reference_hashes.items():
-            for ref_hash, label in refs:
-                dist = h - ref_hash
-                if dist < THRESHOLD:
-                    closest_matches.append((pid, label, dist))
+        best_match = None
+        min_distance = float('inf')
 
-        if not closest_matches:
-            print(f"🚫 No match for {img}")
-            continue
+        for ref_name, ref_hash in reference_hashes.items():
+            distance = query_hash - ref_hash
+            if distance < min_distance:
+                min_distance = distance
+                best_match = ref_name
 
-        # Group by Product ID
-        grouped = defaultdict(list)
-        for pid, label, _ in closest_matches:
-            grouped[pid].append(label)
-
-        if len(grouped) == 1:
-            pid, labels = list(grouped.items())[0]
-            if len(labels) == 1:
-                mapping[img].append(pid)
-            else:
-                mapping[img].extend([f"{pid}-{label}" for label in labels])
+        if best_match and min_distance < THRESHOLD:
+            mapping[query] = best_match
         else:
-            for pid, labels in grouped.items():
-                mapping[img].extend([f"{pid}-{label}" for label in labels])
+            print(f"🚫 No close match found for {query} (min distance: {min_distance})")
 
-    # Save result
+    # Write to CSV
     os.makedirs(os.path.dirname(OUTPUT_CSV), exist_ok=True)
     with open(OUTPUT_CSV, 'w') as f:
-        for k, v in mapping.items():
-            f.write(f"{k} -> {v}\n")
+        for q, r in mapping.items():
+            f.write(f"{q} -> {r}\n")
 
     print(f"\n✅ Matching complete. Results saved to {OUTPUT_CSV}")
 
