@@ -1,4 +1,3 @@
-# Image embedding utilities
 import torch
 from PIL import Image
 from .config import device
