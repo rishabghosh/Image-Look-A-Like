@@ -2,16 +2,26 @@ import openpyxl
 import os
 from io import BytesIO
 
+COL_INDEX = {
+    'productId': 1,
+    'frontImage': 2,
+    'backImage': 3,
+    'frontSide': 4
+}
+
+
+def get_image_type(col):
+    if col == COL_INDEX['frontImage']:
+        return 'frontImage'
+    elif col == COL_INDEX['backImage']:
+        return 'backImage'
+    elif col == COL_INDEX['frontSide']:
+        return 'frontSide'
+    return None
+
+
 def extract_images(excel_file, output_folder):
     os.makedirs(output_folder, exist_ok=True)
-
-    # Column mapping (adjust as needed)
-    COL_INDEX = {
-        'productId': 1,
-        'frontImage': 2,
-        'backImage': 3,
-        'frontSide': 4
-    }
 
     # Load workbook
     wb = openpyxl.load_workbook(excel_file)
@@ -26,14 +36,8 @@ def extract_images(excel_file, output_folder):
         anchor = img.anchor._from
         col, row = anchor.col + 1, anchor.row + 1  # 1-based indexing
 
-        # Determine image type
-        if col == COL_INDEX['frontImage']:
-            image_type = 'frontImage'
-        elif col == COL_INDEX['backImage']:
-            image_type = 'backImage'
-        elif col == COL_INDEX['frontSide']:
-            image_type = 'frontSide'
-        else:
+        image_type = get_image_type(col)
+        if not image_type:
             continue  # not a relevant column
 
         product_id = ws.cell(row=row, column=COL_INDEX['productId']).value

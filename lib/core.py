@@ -1,15 +1,11 @@
+import os
+from tqdm import tqdm
 from .embedding import load_image_embedding
 from .similarity import calculate_cosine_similarity
 from .io import list_image_files, write_output_mapping
-import os
-from tqdm import tqdm
-import clip
-import torch
+from .config import model, preprocess
 
 def match_images(reference_dir, query_dir, output_path):
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    model, preprocess = clip.load("ViT-B/32", device=device)
-
     # Load reference embeddings
     reference_embeddings = {}
     reference_files = list_image_files(reference_dir)
