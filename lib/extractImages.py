@@ -1,8 +1,5 @@
 import openpyxl
-from openpyxl.drawing.image import Image as OpenpyxlImage
-import json
 import os
-from PIL import Image
 from io import BytesIO
 
 EXCEL_FILE = 'input/cartoon.xlsx'

@@ -4,10 +4,10 @@ from lib.core import match_images
 import shutil
 
 if __name__ == "__main__":
-    load_dotenv()
-    reference_dir = os.getenv("REFERENCE_DIR", "input/cartoon")
-    query_dir = os.getenv("QUERY_DIR", "output/extracted_images")
-    output_path = os.getenv("OUTPUT_PATH", "output/output_mapping.csv")
+    load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.env'))
+    reference_dir = os.getenv("REFERENCE_DIR")
+    query_dir = os.getenv("QUERY_DIR")
+    output_path = os.getenv("OUTPUT_PATH")
 
     # Remove all files from output/extracted_images
     if os.path.exists(query_dir):
