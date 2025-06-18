@@ -48,8 +48,21 @@ def extract_images(excel_file, output_folder):
 
         # Save image to disk
         img_data = img._data()
+        # Check if a back image exists for this product_id
+        back_image_exists = False
+        for other_img in ws._images:
+            other_anchor = other_img.anchor._from
+            other_col, other_row = other_anchor.col + 1, other_anchor.row + 1
+            other_image_type = get_image_type(other_col)
+            other_product_id = ws.cell(row=other_row, column=COL_INDEX['productId']).value
+            if other_product_id == product_id and other_image_type == 'backImage':
+                back_image_exists = True
+                break
         if image_type == 'frontImage':
-            image_filename = f"{product_id}-f.png"
+            if back_image_exists:
+                image_filename = f"{product_id}-f.png"
+            else:
+                image_filename = f"{product_id}.png"
         elif image_type == 'backImage':
             image_filename = f"{product_id}-b.png"
         elif image_type == 'sideImage' or image_type == 'frontSide':
