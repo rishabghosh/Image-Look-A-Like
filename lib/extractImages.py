@@ -48,7 +48,14 @@ def extract_images(excel_file, output_folder):
 
         # Save image to disk
         img_data = img._data()
-        image_filename = f"{product_id}_{image_type}.png"
+        if image_type == 'frontImage':
+            image_filename = f"{product_id}-f.png"
+        elif image_type == 'backImage':
+            image_filename = f"{product_id}-b.png"
+        elif image_type == 'sideImage' or image_type == 'frontSide':
+            image_filename = f"{product_id}-s.png"
+        else:
+            image_filename = f"{product_id}_{image_type}.png"
         image_path = os.path.join(output_folder, image_filename)
         with open(image_path, "wb") as f:
             f.write(img_data)
