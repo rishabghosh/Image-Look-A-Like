@@ -27,10 +27,11 @@ def write_output_mapping(output_path, mapping):
     for row in mapping:
         query_image = row[0]
         col_a = query_image.replace('-frontImage', '-f').replace('-backImage', '-b').replace('-sideImage', '-s')
+        col_b = row[1]
         image_path = os.path.join(extracted_images_dir, query_image)
-        ws.append([col_a, '', row[1], row[2]])
+        ws.append([col_a, '', col_b, row[2]])
         current_row = ws.max_row
-        json_data[col_a] = row[1]
+        json_data[col_b] = col_a
         if os.path.exists(image_path):
             temp_path = None
             try:
@@ -48,7 +49,7 @@ def write_output_mapping(output_path, mapping):
     for temp_path in temp_files:
         if os.path.exists(temp_path):
             os.remove(temp_path)
-    # Save col_a:col_b as JSON (as a dict)
+    # Save col_b:col_a as JSON (as a dict)
     json_output_path = os.path.splitext(output_path)[0] + '.json'
     with open(json_output_path, 'w') as jf:
         json.dump(json_data, jf, indent=2)
