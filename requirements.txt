@@ -6,3 +6,5 @@ imagehash
 Pillow
 tqdm
 scikit-learn
+torch
+clip

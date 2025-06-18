@@ -56,8 +56,4 @@ for img in ws._images:
 
     product_map[product_id][image_type] = image_filename
 
-# Write JSON mapping
-with open("product_image_mapping.json", "w") as f:
-    json.dump(product_map, f, indent=2)
-
 print("✅ Image mapping written to product_image_mapping.json")
