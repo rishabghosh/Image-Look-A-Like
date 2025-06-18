@@ -1,6 +1,5 @@
 import openpyxl
 import os
-from io import BytesIO
 
 COL_INDEX = {
     'productId': 1,

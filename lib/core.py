@@ -2,7 +2,7 @@ import os
 from tqdm import tqdm
 from .embedding import load_image_embedding
 from .similarity import calculate_cosine_similarity
-from .io import list_image_files, write_output_mapping
+from .ioUtils import list_image_files, write_output_mapping
 from .config import model, preprocess
 
 def match_images(reference_dir, query_dir, output_path):
