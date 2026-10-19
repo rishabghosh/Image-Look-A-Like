@@ -1,5 +1,6 @@
 import openpyxl
 import os
+import pandas as pd
 
 COL_INDEX = {
     'productId': 1,
@@ -76,3 +77,18 @@ def extract_images(excel_file, output_folder):
         product_map[product_id][image_type] = image_filename
 
     print("✅ Image mapping written to product_image_mapping.json")
+
+    # After processing images, write output Excel with renamed columns
+    output_excel_path = os.path.join(output_folder, 'extracted_images.xlsx')
+    rows = []
+    for product_id, images in product_map.items():
+        row = {
+            'this is product Id from EXCEL_FILE': product_id,
+            'QUERY_DIR': images.get('frontImage', ''),
+            'REFERENCE_DIR': images.get('backImage', ''),
+            'reference image name in drive': images.get('frontSide', '')
+        }
+        rows.append(row)
+    df = pd.DataFrame(rows)
+    df.to_excel(output_excel_path, index=False)
+    print(f"✅ Output Excel with renamed columns written to {output_excel_path}")
